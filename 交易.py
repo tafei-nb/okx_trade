@@ -14,13 +14,13 @@ import get_api_key
 mapping_dict = {
     "BTC": 10459,
     'ETH': 10461,
-    'SOL': 10530,
-    'DOGE': 10502
+    'BZ': 10530,
+    'CL': 10502
 }
 
 name, api_key, secret_key, passphrase = get_api_key.save_to_json()
 
-Trading_Pair = {'BTC': 'ETH', 'SOL': 'DOGE', 'DOGE': 'SOL', 'ETH': 'BTC'}
+Trading_Pair = {'BTC': 'ETH', 'BZ': 'CL', 'CL': 'BZ', 'ETH': 'BTC'}
 Other_Pair = {
     "long": 'short',
     "short": 'long',
@@ -30,38 +30,38 @@ Other_Pair = {
 sz_mix = {
     'BTC': 0.0001,
     'ETH': 0.001,
-    'SOL': 0.01,
-    'DOGE': 10
+    'BZ': 0.01,
+    'CL': 10
 }
 price_dir_change = {
     "BTC": "btc_price",
     "ETH": "eth_price",
-    "SOL": "sol_price",
-    "DOGE": "doge_price"
+    "BZ": "BZ_price",
+    "CL": "CL_price"
 }
 price_rate_change = {
     "BTC": "btc_eth_rate",
     "ETH": "eth_btc_rate",
-    "SOL": "sol_doge_rate",
-    "DOGE": "doge_sol_rate"
+    "BZ": "BZ_CL_rate",
+    "CL": "CL_BZ_rate"
 }
 dir_order = {}
 
 ws = None
 
 
-# async def balance_Postion_doge( inst_id_string, price_dir, Postion):
-#     #                         doge              doge.price                    sol.price
+# async def balance_Postion_CL( inst_id_string, price_dir, Postion):
+#     #                         CL              CL.price                    BZ.price
 #     global ws
 #     await asyncio.sleep(5)
 #     inst_id_string = Trading_Pair.get(inst_id_string)
 #     await order_only_one_buy(ws, inst_id_string, price_dir, Postion)
 #     await order_only_one_sell(ws, inst_id_string, price_dir, Postion)
-async def balance_Postion_doge(inst_id_string, price_dir, position):
+async def balance_Postion_CL(inst_id_string, price_dir, position):
     global ws
     await asyncio.sleep(5)
 
-    # 比如传入 "DOGE"，这里会映射成需要调平的主体目标 "SOL"
+    # 比如传入 "CL"，这里会映射成需要调平的主体目标 "BZ"
     target_coin = Trading_Pair.get(inst_id_string)
     reverse_coin = inst_id_string
 
@@ -90,7 +90,7 @@ async def auto_balance_order(ws, target_coin, reverse_coin, price_dir, position)
 
     # 【核心修复】：推算 OKX 合约面值 (Multiplier)
     # 根据你的 sz_mix 推算，面值正好等于 sz_mix * 100
-    # (例如 DOGE: 10 * 100 = 1000, SOL: 0.01 * 100 = 1)
+    # (例如 CL: 10 * 100 = 1000, BZ: 0.01 * 100 = 1)
     target_multiplier = sz_mix.get(target_coin) * 100
     reverse_multiplier = sz_mix.get(reverse_coin) * 100
 
@@ -191,7 +191,7 @@ async def order_main(price_rate, price_dir, USDT_count, Postion):
                     task_ping = asyncio.create_task(_ping(is_logged_in, ws))
                     task_recv = asyncio.create_task(_recv(is_logged_in, ws))
                     task_strategy = asyncio.create_task(
-                        strategy_doge_sol(ws, price_rate, price_dir, USDT_count, Postion))
+                        strategy_CL_BZ(ws, price_rate, price_dir, USDT_count, Postion))
 
                     # 这里的关键操作：让主流程在这里等待 _recv 任务
                     # 只要网络正常，_recv 就会一直在跑。如果断网，_recv 结束，这行 await 就会放行。
@@ -221,8 +221,8 @@ async def order_main(price_rate, price_dir, USDT_count, Postion):
 
 
 
-async def strategy_doge_sol(ws, price_rate, price_dir, USDT_count, Postion):
-    print("strategy_doge_sol")
+async def strategy_CL_BZ(ws, price_rate, price_dir, USDT_count, Postion):
+    print("strategy_CL_BZ")
     from 交易策略 import LocalNeutralGrid
     grid_front = LocalNeutralGrid(lower_price=0.66, upper_price=1.5, grid_num=120, qty_per_grid=0.5)  # 等比
     grid_reverse = LocalNeutralGrid(lower_price=1, upper_price=2, grid_num=100, qty_per_grid=0.5)
@@ -232,17 +232,17 @@ async def strategy_doge_sol(ws, price_rate, price_dir, USDT_count, Postion):
         price = None
         name = None
 
-        # if price_rate.get("doge_sol_rate") >= 1:
+        # if price_rate.get("CL_BZ_rate") >= 1:
         #     grid = grid_front
-        #     name = "DOGE"
-        # elif price_rate.get("doge_sol_rate") < 1:
+        #     name = "CL"
+        # elif price_rate.get("CL_BZ_rate") < 1:
         #     grid = grid_reverse
-        #     name = "SOL"
+        #     name = "BZ"
         # else:
         #     continue
 
         grid = grid_front
-        name = "DOGE"
+        name = "CL"
 
         frist_for = True
         while True:
@@ -272,7 +272,7 @@ async def place_contract_order(ws, inst_id_string, USDT, side, price_dir_real_fr
     try:
         request_id = uuid.uuid4().hex
 
-        if inst_id_string not in ['BTC', 'SOL', 'DOGE', 'ETH']:
+        if inst_id_string not in ['BTC', 'BZ', 'CL', 'ETH']:
             return
 
         if price_dir_real_front is None or price_dir_real_reverse is None:
@@ -304,64 +304,14 @@ async def place_contract_order(ws, inst_id_string, USDT, side, price_dir_real_fr
             "id": request_id,
             "op": "batch-orders",
             "args": [
-                {"side": side, "instIdCode": target_instId1, "tdMode": "cross", "ordType": "limit",
-                 "sz": str(sz_front), 'posSide': 'net', "px": str(price_dir_real_front), "clOrdId": clordid1},
-                {"side": Other_Pair[side], "instIdCode": target_instId2, "tdMode": "cross", "ordType": "limit",
-                 "sz": str(sz_reverse), 'posSide': 'net', "px": str(price_dir_real_reverse), "clOrdId": clordid2}
+                {"side": side, "instIdCode": target_instId1, "tdMode": "cross", "ordType": "market",
+                 "sz": str(sz_front), 'posSide': 'net', "clOrdId": clordid1},
+                {"side": Other_Pair[side], "instIdCode": target_instId2, "tdMode": "cross", "ordType": "market",
+                 "sz": str(sz_reverse), 'posSide': 'net',  "clOrdId": clordid2}
             ]
         }
 
         await ws.send(json.dumps(batch_orders))
-        await asyncio.sleep(4)
-
-        # 发起精准撤单
-        revoke_id = uuid.uuid4().hex
-        loop = asyncio.get_running_loop()
-        future = loop.create_future()
-        pending_responses[revoke_id] = future
-
-        Revoke = {
-            "id": revoke_id,
-            "op": "batch-cancel-orders",
-            "args": [
-                {"instIdCode": target_instId1, "clOrdId": clordid1},
-                {"instIdCode": target_instId2, "clOrdId": clordid2}
-            ]
-        }
-        await ws.send(json.dumps(Revoke))
-
-        try:
-            data = await asyncio.wait_for(future, timeout=4.0)
-
-            # --- 步骤 3：根据撤单结果进行市价补单 ---
-            for order_info in data.get("data", []):
-                s_code = order_info.get("sCode")
-                cl_id = order_info.get("clOrdId")
-
-                if s_code == "0":
-                    if cl_id == clordid1:
-                        补单_payload = {
-                            "id": uuid.uuid4().hex, "op": "batch-orders",
-                            "args": [{"side": side, "instIdCode": target_instId1, "tdMode": "cross", "ordType": "market",
-                                      "sz": str(sz_front), 'posSide': 'net', "clOrdId": f"{clordid1}m"}]
-                            # 用m代替market，无下划线
-                        }
-                        await ws.send(json.dumps(补单_payload))
-
-                    if cl_id == clordid2:
-                        补单_payload = {
-                            "id": uuid.uuid4().hex, "op": "batch-orders",
-                            "args": [{"side": Other_Pair[side], "instIdCode": target_instId2, "tdMode": "cross",
-                                      "ordType": "market",
-                                      "sz": str(sz_reverse), 'posSide': 'net', "clOrdId": f"{clordid2}m"}]
-                        }
-                        await ws.send(json.dumps(补单_payload))
-
-        except asyncio.TimeoutError:
-            pass
-        finally:
-            pending_responses.pop(revoke_id, None)
-
     except Exception as e:
         import traceback
         traceback.print_exc()

@@ -17,8 +17,8 @@ async def get_live_prices():
                     'args': [
                         {"channel": "tickers", "instId": "BTC-USDT-SWAP"},
                         {"channel": "tickers", "instId": "ETH-USDT-SWAP"},
-                        {"channel": "tickers", "instId": "SOL-USDT-SWAP"},
-                        {"channel": "tickers", "instId": "DOGE-USDT-SWAP"}
+                        {"channel": "tickers", "instId": "BZ-USDT-SWAP"},
+                        {"channel": "tickers", "instId": "CL-USDT-SWAP"}
                     ]
                 }
                 await ws.send(json.dumps(data))

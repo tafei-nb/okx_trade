@@ -2,7 +2,7 @@ import json
 
 # 修复了标点符号和格式的 JSON 原文数据
 raw_data = """
-{"arg":{"channel":"balance_and_position","uid":"611775072042571853"},"data":[{"balData":[{"cashBal":"0.5134869079525037","ccy":"USDT","uTime":"1777472199534"}],"eventType":"snapshot","pTime":"1777993061020","posData":[{"avgPx":"83.76","baseBal":"","ccy":"USDT","instId":"SOL-USDT-SWAP","instType":"SWAP","mgnMode":"isolated","nonSettleAvgPx":"","pos":"0.01","posCcy":"","posId":"3522201831268098048","posSide":"long","quoteBal":"","settledPnl":"","tradeId":"1489961604","uTime":"1777968001639"},{"avgPx":"0.10574","baseBal":"","ccy":"USDT","instId":"DOGE-USDT-SWAP","instType":"SWAP","mgnMode":"isolated","nonSettleAvgPx":"","pos":"0.01","posCcy":"","posId":"3522202000550207488","posSide":"short","quoteBal":"","settledPnl":"","tradeId":"1251695406","uTime":"1777968000637"}],"trades":[]}]}
+{"arg":{"channel":"balance_and_position","uid":"611775072042571853"},"data":[{"balData":[{"cashBal":"0.5134869079525037","ccy":"USDT","uTime":"1777472199534"}],"eventType":"snapshot","pTime":"1777993061020","posData":[{"avgPx":"83.76","baseBal":"","ccy":"USDT","instId":"BZ-USDT-SWAP","instType":"SWAP","mgnMode":"iBZated","nonSettleAvgPx":"","pos":"0.01","posCcy":"","posId":"3522201831268098048","posSide":"long","quoteBal":"","settledPnl":"","tradeId":"1489961604","uTime":"1777968001639"},{"avgPx":"0.10574","baseBal":"","ccy":"USDT","instId":"CL-USDT-SWAP","instType":"SWAP","mgnMode":"iBZated","nonSettleAvgPx":"","pos":"0.01","posCcy":"","posId":"3522202000550207488","posSide":"short","quoteBal":"","settledPnl":"","tradeId":"1251695406","uTime":"1777968000637"}],"trades":[]}]}
 """
 
 
@@ -11,8 +11,8 @@ def get_asset_quantities(json_str):
     result = {
         "BTC": 0.0,
         "ETH": 0.0,
-        "SOL": 0.0,
-        "DOGE": 0.0,
+        "BZ": 0.0,
+        "CL": 0.0,
         "USDT": 0.0
     }
 
@@ -47,10 +47,10 @@ def get_asset_quantities(json_str):
                 result["BTC"] += pos_qty
             elif "ETH-USDT-SWAP" in inst_id:
                 result["ETH"] += pos_qty
-            elif "SOL-USDT-SWAP" in inst_id:
-                result["SOL"] += pos_qty
-            elif "DOGE-USDT-SWAP" in inst_id:
-                result["DOGE"] += pos_qty
+            elif "BZ-USDT-SWAP" in inst_id:
+                result["BZ"] += pos_qty
+            elif "CL-USDT-SWAP" in inst_id:
+                result["CL"] += pos_qty
 
         return result
 
@@ -66,5 +66,5 @@ if __name__ == "__main__":
     print(f"💰 USDT 余额: {quantities['USDT']}")
     print(f"📈 BTC 持仓: {quantities['BTC']} 张")
     print(f"📈 ETH 持仓: {quantities['ETH']} 张")
-    print(f"📈 SOL 持仓: {quantities['SOL']} 张")
-    print(f"📉 DOGE 持仓: {quantities['DOGE']} 张")  # DOGE 应该是负数
+    print(f"📈 BZ 持仓: {quantities['BZ']} 张")
+    print(f"📉 CL 持仓: {quantities['CL']} 张")  # CL 应该是负数

@@ -47,7 +47,7 @@ def extract_for_db(raw_data):
 
 
 # ----------------- 测试运行 -----------------
-raw_data2 = {"arg":{"channel":"balance_and_position","uid":"611775072042571853"},"data":[{"balData":[{"cashBal":"0.4425256349525037","ccy":"USDT","uTime":"1778079558654"}],"eventType":"filled","pTime":"1778079558655","posData":[{"avgPx":"2358.99","baseBal":"","ccy":"USDT","instId":"ETH-USDT-SWAP","instType":"SWAP","mgnMode":"isolated","nonSettleAvgPx":"","pos":"0.01","posCcy":"","posId":"3519604495194988550","posSide":"long","quoteBal":"","settledPnl":"","tradeId":"3828724950","uTime":"1778079558654"}],"trades":[{"instId":"ETH-USDT-SWAP","tradeId":"3828724950"}]}]}
+raw_data2 = {"arg":{"channel":"balance_and_position","uid":"611775072042571853"},"data":[{"balData":[{"cashBal":"0.4425256349525037","ccy":"USDT","uTime":"1778079558654"}],"eventType":"filled","pTime":"1778079558655","posData":[{"avgPx":"2358.99","baseBal":"","ccy":"USDT","instId":"ETH-USDT-SWAP","instType":"SWAP","mgnMode":"iBZated","nonSettleAvgPx":"","pos":"0.01","posCcy":"","posId":"3519604495194988550","posSide":"long","quoteBal":"","settledPnl":"","tradeId":"3828724950","uTime":"1778079558654"}],"trades":[{"instId":"ETH-USDT-SWAP","tradeId":"3828724950"}]}]}
 raw_data1 = {
     # ... (你的空单平仓数据) ...
     "data": [{"pTime": "1778076838346", "posData": [{"instId": "ETH-USDT-SWAP", "pos": "0", "avgPx": "0"}]}]

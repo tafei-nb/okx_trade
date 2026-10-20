@@ -87,14 +87,14 @@ async def __login(Position=None,price_dir=None):
                                 Position_temp = insert_crypto_record(recv_, price_dir, Position)
                                 if Position_temp is not None:
                                     Position['BTC'] = Position_temp
-                            elif data_item == 'DOGE':
+                            elif data_item == 'CL':
                                 Position_temp = insert_crypto_record(recv_, price_dir, Position)
                                 if Position_temp is not None:
-                                    Position['DOGE'] = Position_temp
-                            elif data_item == 'SOL':
+                                    Position['CL'] = Position_temp
+                            elif data_item == 'BZ':
                                 Position_temp = insert_crypto_record(recv_, price_dir, Position)
                                 if Position_temp is not None:
-                                    Position['SOL'] = Position_temp
+                                    Position['BZ'] = Position_temp
                             elif data_item == 'USDT':
                                 Position_temp = insert_crypto_record(recv_, 1, Position)
                                 if Position_temp is not None:
@@ -117,8 +117,8 @@ async def __login(Position=None,price_dir=None):
                         print(f"💰 USDT 余额: {Position['USDT']}")
                         print(f"📈 BTC 持仓: {Position['BTC']} 张")
                         print(f"📈 ETH 持仓: {Position['ETH']} 张")
-                        print(f"📈 SOL 持仓: {Position['SOL']} 张")
-                        print(f"📉 DOGE 持仓: {Position['DOGE']} 张")
+                        print(f"📈 BZ 持仓: {Position['BZ']} 张")
+                        print(f"📉 CL 持仓: {Position['CL']} 张")
                         yield Position
 
             """
@@ -143,8 +143,8 @@ async def main():
     Position = {
         "BTC": 0.0,
         "ETH": 0.0,
-        "SOL": 0.0,
-        "DOGE": 0.0,
+        "BZ": 0.0,
+        "CL": 0.0,
         "USDT": 0.0
     }
 
@@ -214,7 +214,7 @@ data_item = recv_.get("data", [{}])[0].get("ccy")
 			"ccy": "USDT",
 			"instId": "ETH-USDT-SWAP",
 			"instType": "SWAP",
-			"mgnMode": "isolated",  逐仓
+			"mgnMode": "iBZated",  逐仓
 			"nonSettleAvgPx": "",
 			"pos": "0",             完全平仓
 			"posCcy": "",           

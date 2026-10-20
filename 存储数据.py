@@ -33,12 +33,12 @@ def insert_crypto_record(raw_data,price_dir,Position):
             elif symbol=='ETH':
                 price_real= price_dir.get('eth_price')
                 quantity_change=quantity-Position.get('ETH')
-            elif symbol=='SOL':
-                price_real=price_dir.get('sol_price')
-                quantity_change=quantity-Position.get('SOL')
-            elif symbol=='DOGE':
-                price_real=price_dir.get('doge_price')
-                quantity_change=quantity-Position.get('DOGE')
+            elif symbol=='BZ':
+                price_real=price_dir.get('BZ_price')
+                quantity_change=quantity-Position.get('BZ')
+            elif symbol=='CL':
+                price_real=price_dir.get('CL_price')
+                quantity_change=quantity-Position.get('CL')
 
 
             record_time = datetime.now().strftime('%Y-%m-%d %H:%M:00')
@@ -97,7 +97,7 @@ if __name__ == '__main__':
                 "ccy": "USDT",
                 "instId": "ETH-USDT-SWAP",
                 "instType": "SWAP",
-                "mgnMode": "isolated",
+                "mgnMode": "iBZated",
                 "nonSettleAvgPx": "",
                 "pos": "0",
                 "posCcy": "",

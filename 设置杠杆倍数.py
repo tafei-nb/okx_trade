@@ -14,9 +14,9 @@ def main():
     timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
     body = {
-        "instId": "SOL-USDT-SWAP",
+        "instId": "BZ-USDT-SWAP",
         "lever": "5",
-        "mgnMode": "isolated"
+        "mgnMode": "iBZated"
     }
 
     # 2. 提前将字典转化为严格的 JSON 字符串（消除多余空格）

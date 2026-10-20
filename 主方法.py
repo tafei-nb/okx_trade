@@ -3,23 +3,23 @@ import asyncio
 # 导入上面写好的异步生成器
 from websocket_获取实时价格 import get_live_prices
 from websocket_查看当前持仓与账户 import __login
-from 交易 import order_main, balance_Postion_doge
+from 交易 import order_main, balance_Postion_CL
 
 # 单次交易最大数量
-USDT_count = 0.6
+USDT_count = 1.5
 # 声明全局变量
 price_dir = {
     "btc_price": 0,
     "eth_price": 0,
-    "sol_price": 0,
-    "doge_price": 0,
+    "BZ_price": 0,
+    "CL_price": 0,
     "ltc_price":0
 }
 price_rate = {
     "btc_eth_rate": -1,
     "eth_btc_rate": -1,
-    "doge_sol_rate": -1,
-    "sol_doge_rate": -1,
+    "CL_BZ_rate": -1,
+    "BZ_CL_rate": -1,
     "ltc-btc-rate": -1,
     "btc-ltc-rate": -1
 }
@@ -27,8 +27,8 @@ price_rate = {
 Position = {
     "BTC": 0.0,
     "ETH": 0.0,
-    "SOL": 0.0,
-    "DOGE": 0.0,
+    "BZ": 0.0,
+    "CL": 0.0,
     "LTC": 0.0,
     "USDT": 0.0
 }
@@ -44,17 +44,17 @@ async def print_price():
         # ⚠️ 关键：在异步中必须用 asyncio.sleep，不能用 time.sleep
         await asyncio.sleep(1)
         print(
-            f"💰 BTC: {price_dir.get("btc_price")} | ETH: {price_dir.get("eth_price")} | SOL: {price_dir.get("sol_price")} | DOGE: {price_dir.get("doge_price")}")
+            f"💰 BTC: {price_dir.get("btc_price")} | ETH: {price_dir.get("eth_price")} | BZ: {price_dir.get("BZ_price")} | CL: {price_dir.get("CL_price")}")
         print(
-            f"BTC 持仓: {Position['BTC']} 张|ETH 持仓: {Position['ETH']} 张|SOL 持仓: {Position['SOL']} 张|DOGE 持仓: {Position['DOGE']} 张")
+            f"BTC 持仓: {Position['BTC']} 张|ETH 持仓: {Position['ETH']} 张|BZ 持仓: {Position['BZ']} 张|CL 持仓: {Position['CL']} 张")
         if price_dir.get("btc_price") > 0 and price_dir.get("eth_price") > 0 and price_dir.get(
-                "sol_price") > 0 and price_dir.get("doge_price") > 0:
+                "BZ_price") > 0 and price_dir.get("CL_price") > 0:
             price_rate["btc_eth_rate"] = (price_dir.get("btc_price") / 32.629) / price_dir.get("eth_price")
-            price_rate["doge_sol_rate"] = (price_dir.get("doge_price") * 900.94) / price_dir.get("sol_price")
+            price_rate["CL_BZ_rate"] = (price_dir.get("CL_price")) / price_dir.get("BZ_price")
             # price_rate["eth_btc_rate"] = price_dir.get("eth_price") / (price_dir.get("btc_price") / 32.629)
-            price_rate["sol_doge_rate"] = price_dir.get("sol_price") / (price_dir.get("doge_price") * 900.94)
+            price_rate["BZ_CL_rate"] = price_dir.get("BZ_price") / (price_dir.get("CL_price"))
             # price_rate["ltc-btc-rate"]=price_dir.get("ltc_price") / (price_dir.get("btc_price"))
-            print(f"btc_eth_rate:{price_rate["btc_eth_rate"]}||doge_sol_rate:{price_rate["doge_sol_rate"]}")
+            print(f"btc_eth_rate:{price_rate["btc_eth_rate"]}||CL_BZ_rate:{price_rate["CL_BZ_rate"]}")
 
 
 async def process_live_prices():
@@ -71,10 +71,10 @@ async def process_live_prices():
             price_dir["btc_price"] = float(latest_price_dict.get("BTC-USDT-SWAP"))
         elif "ETH-USDT-SWAP" in latest_price_dict:
             price_dir["eth_price"] = float(latest_price_dict.get("ETH-USDT-SWAP"))
-        elif "SOL-USDT-SWAP" in latest_price_dict:
-            price_dir["sol_price"] = float(latest_price_dict.get("SOL-USDT-SWAP"))
-        elif "DOGE-USDT-SWAP" in latest_price_dict:
-            price_dir["doge_price"] = float(latest_price_dict.get("DOGE-USDT-SWAP"))
+        elif "BZ-USDT-SWAP" in latest_price_dict:
+            price_dir["BZ_price"] = float(latest_price_dict.get("BZ-USDT-SWAP"))
+        elif "CL-USDT-SWAP" in latest_price_dict:
+            price_dir["CL_price"] = float(latest_price_dict.get("CL-USDT-SWAP"))
 
 # 获取持仓
 async def get_new_position():
@@ -94,7 +94,7 @@ async def order_():
 async def balance_Postion():
     await asyncio.sleep(150)
     global Position, price_dir
-    await balance_Postion_doge("DOGE", price_dir, Position)
+    await balance_Postion_CL("CL", price_dir, Position)
 
 
 async def main():

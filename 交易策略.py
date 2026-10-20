@@ -1,17 +1,17 @@
 import asyncio
 
-Trading_Pair = {'BTC': 'ETH', 'SOL': 'DOGE', 'DOGE': 'SOL', 'ETH': 'BTC'}
+Trading_Pair = {'BTC': 'ETH', 'BZ': 'CL', 'CL': 'BZ', 'ETH': 'BTC'}
 price_dir_change = {
     "BTC": "btc_price",
     "ETH": "eth_price",
-    "SOL": "sol_price",
-    "DOGE": "doge_price"
+    "BZ": "BZ_price",
+    "CL": "CL_price"
 }
 price_rate_change = {
     "BTC": "btc_eth_rate",
     "ETH": "eth_btc_rate",
-    "SOL": "sol_doge_rate",
-    "DOGE": "doge_sol_rate"
+    "BZ": "BZ_CL_rate",
+    "CL": "CL_BZ_rate"
 }
 class LocalNeutralGrid:
     def __init__(self, lower_price, upper_price, grid_num, qty_per_grid):
@@ -113,7 +113,7 @@ class LocalNeutralGrid:
 
 # ================= 对比测试 =================
 async def main():
-    # 假设 DOGE 的区间 1 到 1.5，50格
+    # 假设 CL 的区间 1 到 1.5，50格
     grid = LocalNeutralGrid(lower_price=0.66, upper_price=1.5, grid_num=120, qty_per_grid=0.5)
 
     prices = [1.25, 1.1, 1, 0.9, 1.3, 1.1, 1.2, 1.1, 1.1, 1.1, 1, 1.1, 1.2, 1.2500001]
