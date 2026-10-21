@@ -6,7 +6,7 @@ from websocket_查看当前持仓与账户 import __login
 from 交易 import order_main, balance_Postion_CL
 
 # 单次交易最大数量
-USDT_count = 1.5
+USDT_count = 3
 # 声明全局变量
 price_dir = {
     "btc_price": 0,

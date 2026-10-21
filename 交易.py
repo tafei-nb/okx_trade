@@ -14,8 +14,8 @@ import get_api_key
 mapping_dict = {
     "BTC": 10459,
     'ETH': 10461,
-    'BZ': 10530,
-    'CL': 10502
+    'BZ': 254585,
+    'CL': 251851
 }
 
 name, api_key, secret_key, passphrase = get_api_key.save_to_json()
@@ -31,7 +31,8 @@ sz_mix = {
     'BTC': 0.0001,
     'ETH': 0.001,
     'BZ': 0.01,
-    'CL': 10
+    'CL': 0.1
+
 }
 price_dir_change = {
     "BTC": "btc_price",
@@ -47,6 +48,7 @@ price_rate_change = {
 }
 dir_order = {}
 
+price_rate=10
 ws = None
 
 
@@ -224,7 +226,7 @@ async def order_main(price_rate, price_dir, USDT_count, Postion):
 async def strategy_CL_BZ(ws, price_rate, price_dir, USDT_count, Postion):
     print("strategy_CL_BZ")
     from 交易策略 import LocalNeutralGrid
-    grid_front = LocalNeutralGrid(lower_price=0.66, upper_price=1.5, grid_num=120, qty_per_grid=0.5)  # 等比
+    grid_front = LocalNeutralGrid(lower_price=0.8, upper_price=1.25, grid_num=40, qty_per_grid=0.5)  # 等比
     grid_reverse = LocalNeutralGrid(lower_price=1, upper_price=2, grid_num=100, qty_per_grid=0.5)
     while True:
         await asyncio.sleep(1)
@@ -250,9 +252,9 @@ async def strategy_CL_BZ(ws, price_rate, price_dir, USDT_count, Postion):
 
             price = price_rate.get(price_rate_change.get(name))
 
-            # if frist_for:
-            #     frist_for = False
-            #     price = 1
+            if frist_for:
+                frist_for = False
+                price = 0.95
             print(f"\n>>> 最新市价: {price}")
 
             await grid.update_price(price, ws, name, USDT_count, price_dir)
@@ -279,8 +281,8 @@ async def place_contract_order(ws, inst_id_string, USDT, side, price_dir_real_fr
             return
 
         # 计算双边张数
-        mix_USDT_front = price_dir_real_front * sz_mix[inst_id_string] / 3
-        mix_USDT_reverse = price_dir_real_reverse * sz_mix[Trading_Pair.get(inst_id_string)] / 3
+        mix_USDT_front = price_dir_real_front * sz_mix[inst_id_string] / price_rate
+        mix_USDT_reverse = price_dir_real_reverse * sz_mix[Trading_Pair.get(inst_id_string)] / price_rate
 
         # 恢复保留两位小数的计算方式
         sz_front = round(((USDT / 2) / (mix_USDT_front * 100)), 2)
