@@ -8,7 +8,12 @@ import uuid
 
 import websockets
 
-import get_api_key
+from 价差自动交易系统 import config
+
+# 下单状态 true用主方法count数量交易 false用
+status=config.status
+Boin_count=config.Boin_count
+
 
 # 假设你通过 REST API 获取并解析了数据
 mapping_dict = {
@@ -18,7 +23,8 @@ mapping_dict = {
     'CL': 251851
 }
 
-name, api_key, secret_key, passphrase = get_api_key.save_to_json()
+name, api_key, secret_key, passphrase= config.save_to_env()
+url_ws_private=config.url_ws_private
 
 Trading_Pair = {'BTC': 'ETH', 'BZ': 'CL', 'CL': 'BZ', 'ETH': 'BTC'}
 Other_Pair = {
@@ -153,7 +159,7 @@ async def auto_balance_order(ws, target_coin, reverse_coin, price_dir, position)
 async def order_main(price_rate, price_dir, USDT_count, Postion):
     # 交易必须连接私有频道 (Private Channel)
     global ws
-    ws_url = "wss://ws.okx.com:8443/ws/v5/private"
+    ws_url = url_ws_private
 
     # 在最外层包裹一个 While True 无限循环用于重连
     while True:
@@ -271,6 +277,7 @@ pending_responses = {}
 
 async def place_contract_order(ws, inst_id_string, USDT, side, price_dir_real_front, price_dir_real_reverse):
     global pending_responses
+    batch_orders=None
     try:
         request_id = uuid.uuid4().hex
 
@@ -280,38 +287,57 @@ async def place_contract_order(ws, inst_id_string, USDT, side, price_dir_real_fr
         if price_dir_real_front is None or price_dir_real_reverse is None:
             return
 
-        # 计算双边张数
-        mix_USDT_front = price_dir_real_front * sz_mix[inst_id_string] / price_rate
-        mix_USDT_reverse = price_dir_real_reverse * sz_mix[Trading_Pair.get(inst_id_string)] / price_rate
+        if status:
+            # 计算双边张数
+            mix_USDT_front = price_dir_real_front * sz_mix[inst_id_string] / price_rate
+            mix_USDT_reverse = price_dir_real_reverse * sz_mix[Trading_Pair.get(inst_id_string)] / price_rate
 
-        # 恢复保留两位小数的计算方式
-        sz_front = round(((USDT / 2) / (mix_USDT_front * 100)), 2)
-        sz_reverse = round(((USDT / 2) / (mix_USDT_reverse * 100)), 2)
+            # 恢复保留两位小数的计算方式
+            sz_front = round(((USDT / 2) / (mix_USDT_front * 100) * sz_mix[inst_id_string] / sz_mix[
+                Trading_Pair.get(inst_id_string)]), 2)
+            sz_reverse = round(((USDT / 2) / (mix_USDT_reverse * 100)), 2)
 
-        print(f"计算张数成功 -> 前向: {sz_front}, 反向: {sz_reverse}")
+            print(f"计算张数成功 -> 前向: {sz_front}, 反向: {sz_reverse}")
 
-        # 拦截过小的异常单，防止 sz = 0 被拒
-        if sz_front < 0.01 or sz_reverse < 0.01:
-            print(f"❌ 资金不足以买入 0.01 张，前向:{sz_front}, 反向:{sz_reverse}，放弃下单")
-            return
+            # 拦截过小的异常单，防止 sz = 0 被拒
+            if sz_front < 0.01 or sz_reverse < 0.01:
+                print(f"❌ 资金不足以买入 0.01 张，前向:{sz_front}, 反向:{sz_reverse}，放弃下单")
+                return
 
-        target_instId1 = mapping_dict.get(inst_id_string)
-        target_instId2 = mapping_dict.get(Trading_Pair[inst_id_string])
+            target_instId1 = mapping_dict.get(inst_id_string)
+            target_instId2 = mapping_dict.get(Trading_Pair[inst_id_string])
 
-        # ⚠️ 【绝不能有下划线】：直接拼接纯字母和数字，控制长度在 32 位内
-        clordid1 = f"{inst_id_string}{uuid.uuid4().hex[:8]}"
-        clordid2 = f"{Trading_Pair.get(inst_id_string)}{uuid.uuid4().hex[:8]}"
+            # ⚠️ 【绝不能有下划线】：直接拼接纯字母和数字，控制长度在 32 位内
+            clordid1 = f"{inst_id_string}{uuid.uuid4().hex[:8]}"
+            clordid2 = f"{Trading_Pair.get(inst_id_string)}{uuid.uuid4().hex[:8]}"
 
-        batch_orders = {
-            "id": request_id,
-            "op": "batch-orders",
-            "args": [
-                {"side": side, "instIdCode": target_instId1, "tdMode": "cross", "ordType": "market",
-                 "sz": str(sz_front), 'posSide': 'net', "clOrdId": clordid1},
-                {"side": Other_Pair[side], "instIdCode": target_instId2, "tdMode": "cross", "ordType": "market",
-                 "sz": str(sz_reverse), 'posSide': 'net',  "clOrdId": clordid2}
-            ]
-        }
+            batch_orders = {
+                "id": request_id,
+                "op": "batch-orders",
+                "args": [
+                    {"side": side, "instIdCode": target_instId1, "tdMode": "cross", "ordType": "market",
+                     "sz": str(sz_front), 'posSide': 'net', "clOrdId": clordid1},
+                    {"side": Other_Pair[side], "instIdCode": target_instId2, "tdMode": "cross", "ordType": "market",
+                     "sz": str(sz_reverse), 'posSide': 'net', "clOrdId": clordid2}
+                ]
+            }
+        else:
+            target_instId1 = mapping_dict.get(inst_id_string)
+            target_instId2 = mapping_dict.get(Trading_Pair[inst_id_string])
+            # ⚠️ 【绝不能有下划线】：直接拼接纯字母和数字，控制长度在 32 位内
+            clordid1 = f"{inst_id_string}{uuid.uuid4().hex[:8]}"
+            clordid2 = f"{Trading_Pair.get(inst_id_string)}{uuid.uuid4().hex[:8]}"
+
+            batch_orders = {
+                "id": request_id,
+                "op": "batch-orders",
+                "args": [
+                    {"side": side, "instIdCode": target_instId1, "tdMode": "cross", "ordType": "market",
+                     "sz": str(Boin_count), 'posSide': 'net', "clOrdId": clordid1},
+                    {"side": Other_Pair[side], "instIdCode": target_instId2, "tdMode": "cross", "ordType": "market",
+                     "sz": str(Boin_count), 'posSide': 'net', "clOrdId": clordid2}
+                ]
+            }
 
         await ws.send(json.dumps(batch_orders))
     except Exception as e:
@@ -371,21 +397,6 @@ def _sign(timestamp):
     d = mac.digest()
     return base64.b64encode(d).decode('utf-8')
 
-
-def get_rate(filename="AAA交易倍率.json"):
-    """
-    将数据保存为 JSON 文件，格式化输出方便手工修改。
-    """
-    try:
-        with open(filename, "r", encoding="utf-8") as f:
-            # indent=4 让代码缩进整齐
-            # ensure_ascii=False 确保中文不乱码，方便你手工阅读和编辑
-            json_load = json.load(f)
-        rate = json_load.get('rate')
-        return rate
-
-    except Exception as e:
-        print(f"❌ 保存失败: {e}")
 
 
 # 形参依次为

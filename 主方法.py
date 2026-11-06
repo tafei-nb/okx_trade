@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 # 导入上面写好的异步生成器
 from websocket_获取实时价格 import get_live_prices
@@ -112,7 +113,9 @@ async def main():
 
             await asyncio.gather(task1, task2, task3, task4, task5)
         except:
+            time.sleep(3)
             pass
+
 
 
 if __name__ == '__main__':

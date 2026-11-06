@@ -4,9 +4,11 @@ import hmac
 import json
 import requests
 
-from 实时获取数据 import get_api_key
+from 价差自动交易系统 import config
 
-name, api_key, secret_key, passphrase = get_api_key.save_to_json()
+name, api_key, secret_key, passphrase= config.save_to_env()
+OKX_rate=config.OKX_rate
+url_set_leverage=config.url_set_leverage
 
 
 def main():
@@ -15,8 +17,8 @@ def main():
 
     body = {
         "instId": "BZ-USDT-SWAP",
-        "lever": "5",
-        "mgnMode": "iBZated"
+        "lever": str(OKX_rate),
+        "mgnMode": "cross"
     }
 
     # 2. 提前将字典转化为严格的 JSON 字符串（消除多余空格）
@@ -33,10 +35,8 @@ def main():
         "OK-ACCESS-SIGN": sign
     }
 
-    url = 'https://www.okx.com/api/v5/account/set-leverage'
-
     # 4. 【最关键的修复】直接使用 data=body_str 发送，绝对不要再用 json=body
-    post = requests.post(url, data=body_str, headers=login_payload)
+    post = requests.post(url_set_leverage, data=body_str, headers=login_payload)
 
     result = post.json()
     if result.get("code") == "0":

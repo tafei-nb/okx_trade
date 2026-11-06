@@ -6,7 +6,7 @@ import time
 from 持仓初始化 import get_asset_quantities
 import asyncio
 import websockets
-import get_api_key
+from 价差自动交易系统 import config
 
 from 存储数据 import insert_crypto_record
 
@@ -20,10 +20,11 @@ def sign_(secret_key, message):
     return result
 
 async def __login(Position=None,price_dir=None):
-    name,apikey,secret_key,passphrase = get_api_key.save_to_json()
+    name,apikey,secret_key,passphrase = config.save_to_env()
+    url_ws_private=config.url_ws_private
     while True:
         try:
-            async with websockets.connect("wss://ws.okx.com:8443/ws/v5/private") as ws:
+            async with websockets.connect(url_ws_private) as ws:
                 timestamp = str(int(time.time()))
                 message = {
                     "op": "login",

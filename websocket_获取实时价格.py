@@ -3,8 +3,9 @@ import json
 
 import websockets
 import asyncio
-
-url = 'wss://ws.okx.com:8443/ws/v5/public'
+import config
+# url = 'wss://ws.okx.com:8443/ws/v5/public'
+url=config.url_ws_public
 
 
 # 把函数名改得更有意义，不要用 __main__
