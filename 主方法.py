@@ -6,9 +6,14 @@ from websocket_获取实时价格 import get_live_prices
 from websocket_查看当前持仓与账户 import __login
 from 交易 import order_main, balance_Postion_CL
 
+from 价差自动交易系统 import config
+
+status = config.status
+
 # 单次交易最大数量
 USDT_count = 3
 # 声明全局变量
+# 当前价格
 price_dir = {
     "btc_price": 0,
     "eth_price": 0,
@@ -16,6 +21,7 @@ price_dir = {
     "CL_price": 0,
     "ltc_price":0
 }
+# 比率
 price_rate = {
     "btc_eth_rate": -1,
     "eth_btc_rate": -1,
@@ -24,7 +30,7 @@ price_rate = {
     "ltc-btc-rate": -1,
     "btc-ltc-rate": -1
 }
-
+# 当前持仓
 Position = {
     "BTC": 0.0,
     "ETH": 0.0,
@@ -109,9 +115,13 @@ async def main():
 
             # 等待任务执行（因为它们是死循环，所以会一直挂起运行）
             task4 = asyncio.create_task(order_())  # 执行交易系统 包含交易策略
-            task5 = asyncio.create_task(balance_Postion())
+            # 调平机器人
+            if status:
+                task5=asyncio.create_task(balance_Postion())
+                await asyncio.gather(task1, task2, task3, task4, task5)
+            else:
+                await asyncio.gather(task1, task2, task3, task4)
 
-            await asyncio.gather(task1, task2, task3, task4, task5)
         except:
             time.sleep(3)
             pass

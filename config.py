@@ -1,4 +1,3 @@
-import json
 import os
 from dotenv import load_dotenv
 
@@ -8,6 +7,17 @@ url_ws_private = "wss://ws.okx.com/ws/v5/private"                  # ws连接账
 url_ws_public = 'wss://ws.okx.com/ws/v5/public'                      # ws公共数据网址
 status=False                                                        # 下单状态 true用主方法count数量交易 false用Boin_count数量交易（关闭调平机器人）
 Boin_count=0.1                                                      # 交易数量status为false时生效
+mapping_dict = {                                                    # OKX交易序号
+    "BTC": 10459,
+    'ETH': 10461,
+    'BZ': 254585,
+    'CL': 251851
+}
+A_Boin_NAME="BZ"                                                         # 一币种
+A_Boin_sz=0.01                                                           # 一币种张数
+B_Boin_NAME="CL"                                                         # 二币种
+B_Boin_sz=0.1                                                            # 二币种张数
+
 def save_to_env(filename=".env"):
     try:
         load_dotenv(filename)

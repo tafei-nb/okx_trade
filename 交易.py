@@ -16,13 +16,7 @@ Boin_count=config.Boin_count
 
 
 # 假设你通过 REST API 获取并解析了数据
-mapping_dict = {
-    "BTC": 10459,
-    'ETH': 10461,
-    'BZ': 254585,
-    'CL': 251851
-}
-
+mapping_dict = config.mapping_dict
 name, api_key, secret_key, passphrase= config.save_to_env()
 url_ws_private=config.url_ws_private
 
@@ -78,7 +72,7 @@ async def balance_Postion_CL(inst_id_string, price_dir, position):
         await auto_balance_order(ws, target_coin, reverse_coin, price_dir, position)
         await asyncio.sleep(5)  # 每次检查间隔 5 秒，避免请求过于频繁
 
-
+# 调平机器人
 async def auto_balance_order(ws, target_coin, reverse_coin, price_dir, position):
     """
     智能动态调平函数 (已修复 USDT 价值计算的面值缺失问题)
@@ -258,9 +252,9 @@ async def strategy_CL_BZ(ws, price_rate, price_dir, USDT_count, Postion):
 
             price = price_rate.get(price_rate_change.get(name))
 
-            if frist_for:
-                frist_for = False
-                price = 0.95
+            # if frist_for:
+            #     frist_for = False
+            #     price = 0.95
             print(f"\n>>> 最新市价: {price}")
 
             await grid.update_price(price, ws, name, USDT_count, price_dir)

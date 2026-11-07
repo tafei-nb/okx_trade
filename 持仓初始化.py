@@ -1,9 +1,7 @@
 import json
 
 # 修复了标点符号和格式的 JSON 原文数据
-raw_data = """
-{"arg":{"channel":"balance_and_position","uid":"611775072042571853"},"data":[{"balData":[{"cashBal":"0.5134869079525037","ccy":"USDT","uTime":"1777472199534"}],"eventType":"snapshot","pTime":"1777993061020","posData":[{"avgPx":"83.76","baseBal":"","ccy":"USDT","instId":"BZ-USDT-SWAP","instType":"SWAP","mgnMode":"iBZated","nonSettleAvgPx":"","pos":"0.01","posCcy":"","posId":"3522201831268098048","posSide":"long","quoteBal":"","settledPnl":"","tradeId":"1489961604","uTime":"1777968001639"},{"avgPx":"0.10574","baseBal":"","ccy":"USDT","instId":"CL-USDT-SWAP","instType":"SWAP","mgnMode":"iBZated","nonSettleAvgPx":"","pos":"0.01","posCcy":"","posId":"3522202000550207488","posSide":"short","quoteBal":"","settledPnl":"","tradeId":"1251695406","uTime":"1777968000637"}],"trades":[]}]}
-"""
+
 
 
 def get_asset_quantities(json_str):
@@ -59,6 +57,9 @@ def get_asset_quantities(json_str):
         return result
 
 
+raw_data = """
+{"arg":{"channel":"balance_and_position","uid":"611775072042571853"},"data":[{"balData":[{"cashBal":"0.5134869079525037","ccy":"USDT","uTime":"1777472199534"}],"eventType":"snapshot","pTime":"1777993061020","posData":[{"avgPx":"83.76","baseBal":"","ccy":"USDT","instId":"BZ-USDT-SWAP","instType":"SWAP","mgnMode":"iBZated","nonSettleAvgPx":"","pos":"0.01","posCcy":"","posId":"3522201831268098048","posSide":"long","quoteBal":"","settledPnl":"","tradeId":"1489961604","uTime":"1777968001639"},{"avgPx":"0.10574","baseBal":"","ccy":"USDT","instId":"CL-USDT-SWAP","instType":"SWAP","mgnMode":"iBZated","nonSettleAvgPx":"","pos":"0.01","posCcy":"","posId":"3522202000550207488","posSide":"short","quoteBal":"","settledPnl":"","tradeId":"1251695406","uTime":"1777968000637"}],"trades":[]}]}
+"""
 # 测试运行
 if __name__ == "__main__":
     quantities = get_asset_quantities(raw_data)
