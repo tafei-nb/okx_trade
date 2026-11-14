@@ -16,10 +16,8 @@ async def get_live_prices():
                 data = {
                     'op': 'subscribe',
                     'args': [
-                        {"channel": "tickers", "instId": "BTC-USDT-SWAP"},
-                        {"channel": "tickers", "instId": "ETH-USDT-SWAP"},
-                        {"channel": "tickers", "instId": "BZ-USDT-SWAP"},
-                        {"channel": "tickers", "instId": "CL-USDT-SWAP"}
+                        {"channel": "tickers", "instId": f"{config.B_Boin_NAME}-USDT-SWAP"},
+                        {"channel": "tickers", "instId": f"{config.A_Boin_NAME}-USDT-SWAP"}
                     ]
                 }
                 await ws.send(json.dumps(data))
@@ -47,6 +45,6 @@ async def get_live_prices():
         except Exception as e:
             print(f"❌ 发生异常: {e}")
         finally:
-            await asyncio.sleep(3)
+            await asyncio.sleep(5)
 
 # 这个文件现在只是一个工具模块，不需要在最下面写运行逻辑了

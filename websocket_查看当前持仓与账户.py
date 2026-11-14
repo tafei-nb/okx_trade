@@ -3,14 +3,16 @@ import hashlib
 import hmac
 import json
 import time
+from asyncio import sleep
+
 from 持仓初始化 import get_asset_quantities
 import asyncio
 import websockets
-from 价差自动交易系统 import config
+from 价差自动交易系统 import config, constants
 
 from 存储数据 import insert_crypto_record
 
-
+url_ws_private = config.url_ws_private
 
 
 def sign_(secret_key, message):
@@ -21,7 +23,7 @@ def sign_(secret_key, message):
 
 async def __login(Position=None,price_dir=None):
     name,apikey,secret_key,passphrase = config.save_to_env()
-    url_ws_private=config.url_ws_private
+
     while True:
         try:
             async with websockets.connect(url_ws_private) as ws:
@@ -80,46 +82,36 @@ async def __login(Position=None,price_dir=None):
                             # 提取最新持仓量（可选：如果你不想再调一次 API，可以直接从这里拿）
                             new_pos = pos_data.get("pos", "0")
 
-                            if data_item == 'ETH':
+                            if data_item == config.A_Boin_NAME:
                                 Position_temp = insert_crypto_record(recv_, price_dir, Position)
                                 if Position_temp is not None:
-                                    Position['ETH'] = Position_temp
-                            elif data_item == 'BTC':
+                                    Position[config.A_Boin_NAME] = Position_temp
+                            elif data_item == config.B_Boin_NAME:
                                 Position_temp = insert_crypto_record(recv_, price_dir, Position)
                                 if Position_temp is not None:
-                                    Position['BTC'] = Position_temp
-                            elif data_item == 'CL':
-                                Position_temp = insert_crypto_record(recv_, price_dir, Position)
-                                if Position_temp is not None:
-                                    Position['CL'] = Position_temp
-                            elif data_item == 'BZ':
-                                Position_temp = insert_crypto_record(recv_, price_dir, Position)
-                                if Position_temp is not None:
-                                    Position['BZ'] = Position_temp
-                            elif data_item == 'USDT':
+                                    Position[config.B_Boin_NAME] = Position_temp
+                            elif data_item == constants.ORDER_USDT:
                                 Position_temp = insert_crypto_record(recv_, 1, Position)
                                 if Position_temp is not None:
-                                    Position['USDT'] = Position_temp
+                                    Position[constants.ORDER_USDT] = Position_temp
 
                             # ... 其他币种以此类推 ...
 
                         # 2. 如果你需要同步更新 USDT 余额
                         if "balData" in data_content and len(data_content["balData"]) > 0:
                             bal_data = data_content["balData"][0]
-                            if bal_data.get("ccy") == "USDT":
+                            if bal_data.get("ccy") == constants.ORDER_USDT:
                                 # 你甚至可以直接在这里更新余额，不需要调用 insert_crypto_record
-                                Position['USDT'] = float(bal_data.get("cashBal", 0))
+                                Position[constants.ORDER_USDT] = float(bal_data.get("cashBal", 0))
 
                         yield Position
 
 
                     elif count == 3:
                         Position = get_asset_quantities(recv_)
-                        print(f"💰 USDT 余额: {Position['USDT']}")
-                        print(f"📈 BTC 持仓: {Position['BTC']} 张")
-                        print(f"📈 ETH 持仓: {Position['ETH']} 张")
-                        print(f"📈 BZ 持仓: {Position['BZ']} 张")
-                        print(f"📉 CL 持仓: {Position['CL']} 张")
+                        print(f"💰 USDT 余额: {Position[constants.ORDER_USDT]}")
+                        print(f"📈 BZ 持仓: {Position[config.B_Boin_NAME]} 张")
+                        print(f"📉 CL 持仓: {Position[config.A_Boin_NAME]} 张")
                         yield Position
 
             """
@@ -138,6 +130,10 @@ async def __login(Position=None,price_dir=None):
             print("网络链接异常断开")
         except websockets.exceptions.ConnectionClosedOK:
             print("已关闭网络连接")
+        except:
+            print("其他问题")
+        finally:
+            await asyncio.sleep(5)
 
 
 async def main():
@@ -145,7 +141,7 @@ async def main():
         "BTC": 0.0,
         "ETH": 0.0,
         "BZ": 0.0,
-        "CL": 0.0,
+        config.A_Boin_NAME: 0.0,
         "USDT": 0.0
     }
 

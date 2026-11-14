@@ -1,4 +1,6 @@
 import json
+from 价差自动交易系统 import config, constants
+
 
 # 修复了标点符号和格式的 JSON 原文数据
 
@@ -7,13 +9,10 @@ import json
 def get_asset_quantities(json_str):
     # 1. 初始化结果，如果没有找到默认就是 0
     result = {
-        "BTC": 0.0,
-        "ETH": 0.0,
-        "BZ": 0.0,
-        "CL": 0.0,
-        "USDT": 0.0
+        config.B_Boin_NAME: 0.0,
+        config.A_Boin_NAME: 0.0,
+        constants.ORDER_USDT: 0.0
     }
-
     try:
         # 将 JSON 字符串转为 Python 字典
         data_dict = json.loads(json_str)
@@ -27,8 +26,8 @@ def get_asset_quantities(json_str):
 
         # 2. 从 balData 提取 USDT 余额
         for bal in core_data.get("balData", []):
-            if bal.get("ccy") == "USDT":
-                result["USDT"] += float(bal.get("cashBal", 0))
+            if bal.get("ccy") == constants.ORDER_USDT:
+                result[constants.ORDER_USDT] += float(bal.get("cashBal", 0))
 
         # 3. 从 posData 提取各个币种的持仓量
         for pos in core_data.get("posData", []):
@@ -37,18 +36,14 @@ def get_asset_quantities(json_str):
             pos_side = pos.get("posSide", "")  # 🌟 关键点 1：获取多空方向
 
             # 🌟 关键点 2：如果是做空 (short)，就把张数变成负数
-            if pos_side == "short":
+            if pos_side == constants.ORDER_SHORT:
                 pos_qty = -pos_qty
 
             # 匹配并累加持仓张数
-            if "BTC-USDT-SWAP" in inst_id:
-                result["BTC"] += pos_qty
-            elif "ETH-USDT-SWAP" in inst_id:
-                result["ETH"] += pos_qty
-            elif "BZ-USDT-SWAP" in inst_id:
-                result["BZ"] += pos_qty
-            elif "CL-USDT-SWAP" in inst_id:
-                result["CL"] += pos_qty
+            if f"{config.B_Boin_NAME}{config.B_Boin_SWAP}" in inst_id:
+                result[config.B_Boin_NAME] += pos_qty
+            elif f"{config.A_Boin_NAME}{config.A_Boin_SWAP}" in inst_id:
+                result[config.A_Boin_NAME] += pos_qty
 
         return result
 
@@ -65,7 +60,5 @@ if __name__ == "__main__":
     quantities = get_asset_quantities(raw_data)
 
     print(f"💰 USDT 余额: {quantities['USDT']}")
-    print(f"📈 BTC 持仓: {quantities['BTC']} 张")
-    print(f"📈 ETH 持仓: {quantities['ETH']} 张")
-    print(f"📈 BZ 持仓: {quantities['BZ']} 张")
-    print(f"📉 CL 持仓: {quantities['CL']} 张")  # CL 应该是负数
+    print(f"📈 BZ 持仓: {quantities[config.B_Boin_NAME]} 张")
+    print(f"📉 CL 持仓: {quantities[config.A_Boin_NAME]} 张")  # CL 应该是负数

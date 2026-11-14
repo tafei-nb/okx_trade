@@ -1,17 +1,18 @@
 import asyncio
+from 价差自动交易系统 import config, constants
 
-Trading_Pair = {'BTC': 'ETH', 'BZ': 'CL', 'CL': 'BZ', 'ETH': 'BTC'}
+Trading_Pair = constants.Trading_Pair
 price_dir_change = {
     "BTC": "btc_price",
     "ETH": "eth_price",
     "BZ": "BZ_price",
-    "CL": "CL_price"
+    config.A_Boin_NAME: "CL_price"
 }
 price_rate_change = {
     "BTC": "btc_eth_rate",
     "ETH": "eth_btc_rate",
     "BZ": "BZ_CL_rate",
-    "CL": "CL_BZ_rate"
+    config.A_Boin_NAME: "CL_BZ_rate"
 }
 class LocalNeutralGrid:
     def __init__(self, lower_price, upper_price, grid_num, qty_per_grid):

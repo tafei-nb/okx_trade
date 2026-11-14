@@ -6,38 +6,28 @@ from websocket_获取实时价格 import get_live_prices
 from websocket_查看当前持仓与账户 import __login
 from 交易 import order_main, balance_Postion_CL
 
-from 价差自动交易系统 import config
+from 价差自动交易系统 import config, constants
 
 status = config.status
 
 # 单次交易最大数量
-USDT_count = 3
+USDT_count =config.USDT_count
 # 声明全局变量
 # 当前价格
 price_dir = {
-    "btc_price": 0,
-    "eth_price": 0,
-    "BZ_price": 0,
-    "CL_price": 0,
-    "ltc_price":0
+    f"{config.B_Boin_NAME}_price": 0,
+    f"{config.A_Boin_NAME}_price": 0
 }
 # 比率
 price_rate = {
-    "btc_eth_rate": -1,
-    "eth_btc_rate": -1,
-    "CL_BZ_rate": -1,
-    "BZ_CL_rate": -1,
-    "ltc-btc-rate": -1,
-    "btc-ltc-rate": -1
+    f"{config.A_Boin_NAME}_{config.B_Boin_NAME}_rate": -1,
+    f"{config.B_Boin_NAME}_{config.A_Boin_NAME}_rate": -1
 }
 # 当前持仓
 Position = {
-    "BTC": 0.0,
-    "ETH": 0.0,
-    "BZ": 0.0,
-    "CL": 0.0,
-    "LTC": 0.0,
-    "USDT": 0.0
+    config.B_Boin_NAME: 0.0,
+    config.A_Boin_NAME: 0.0,
+    constants.ORDER_USDT: 0.0
 }
 
 
@@ -51,17 +41,14 @@ async def print_price():
         # ⚠️ 关键：在异步中必须用 asyncio.sleep，不能用 time.sleep
         await asyncio.sleep(1)
         print(
-            f"💰 BTC: {price_dir.get("btc_price")} | ETH: {price_dir.get("eth_price")} | BZ: {price_dir.get("BZ_price")} | CL: {price_dir.get("CL_price")}")
+            f"💰 {config.B_Boin_NAME}: {price_dir.get(f"{config.B_Boin_NAME}_price")} | {config.A_Boin_NAME}: {price_dir.get(f"{config.A_Boin_NAME}_price")}")
         print(
-            f"BTC 持仓: {Position['BTC']} 张|ETH 持仓: {Position['ETH']} 张|BZ 持仓: {Position['BZ']} 张|CL 持仓: {Position['CL']} 张")
-        if price_dir.get("btc_price") > 0 and price_dir.get("eth_price") > 0 and price_dir.get(
-                "BZ_price") > 0 and price_dir.get("CL_price") > 0:
-            price_rate["btc_eth_rate"] = (price_dir.get("btc_price") / 32.629) / price_dir.get("eth_price")
-            price_rate["CL_BZ_rate"] = (price_dir.get("CL_price")) / price_dir.get("BZ_price")
-            # price_rate["eth_btc_rate"] = price_dir.get("eth_price") / (price_dir.get("btc_price") / 32.629)
-            price_rate["BZ_CL_rate"] = price_dir.get("BZ_price") / (price_dir.get("CL_price"))
-            # price_rate["ltc-btc-rate"]=price_dir.get("ltc_price") / (price_dir.get("btc_price"))
-            print(f"btc_eth_rate:{price_rate["btc_eth_rate"]}||CL_BZ_rate:{price_rate["CL_BZ_rate"]}")
+            f"{config.B_Boin_NAME} 持仓: {Position[config.B_Boin_NAME]*constants.sz_mix[config.B_Boin_NAME]} "
+            f"||{config.A_Boin_NAME} 持仓: {Position[config.A_Boin_NAME]*constants.sz_mix[config.A_Boin_NAME]} ")
+        print(f"USDT价值{Position[constants.ORDER_USDT]}")
+        if  price_dir.get(f"{config.B_Boin_NAME}_price") > 0 and price_dir.get(f"{config.A_Boin_NAME}_price") > 0:
+            price_rate[f"{config.A_Boin_NAME}_{config.B_Boin_NAME}_rate"] = (price_dir.get(f"{config.A_Boin_NAME}_price")) / price_dir.get(f"{config.B_Boin_NAME}_price")
+            print(f"{config.A_Boin_NAME}_{config.B_Boin_NAME}_rate:{price_rate[f"{config.A_Boin_NAME}_{config.B_Boin_NAME}_rate"]}")
 
 
 async def process_live_prices():
@@ -74,14 +61,11 @@ async def process_live_prices():
     async for latest_price_dict in get_live_prices():
 
         # 实时更新全局变量
-        if "BTC-USDT-SWAP" in latest_price_dict:
-            price_dir["btc_price"] = float(latest_price_dict.get("BTC-USDT-SWAP"))
-        elif "ETH-USDT-SWAP" in latest_price_dict:
-            price_dir["eth_price"] = float(latest_price_dict.get("ETH-USDT-SWAP"))
-        elif "BZ-USDT-SWAP" in latest_price_dict:
-            price_dir["BZ_price"] = float(latest_price_dict.get("BZ-USDT-SWAP"))
-        elif "CL-USDT-SWAP" in latest_price_dict:
-            price_dir["CL_price"] = float(latest_price_dict.get("CL-USDT-SWAP"))
+        if f"{config.B_Boin_NAME}{config.B_Boin_SWAP}" in latest_price_dict:
+            price_dir[f"{config.B_Boin_NAME}_price"] = float(latest_price_dict.get(f"{config.B_Boin_NAME}{config.B_Boin_SWAP}"))
+        elif f"{config.A_Boin_NAME}{config.A_Boin_SWAP}" in latest_price_dict:
+            price_dir[f"{config.A_Boin_NAME}_price"] = float(latest_price_dict.get(f"{config.A_Boin_NAME}{config.A_Boin_SWAP}"))
+
 
 # 获取持仓
 async def get_new_position():
@@ -101,7 +85,7 @@ async def order_():
 async def balance_Postion():
     await asyncio.sleep(150)
     global Position, price_dir
-    await balance_Postion_CL("CL", price_dir, Position)
+    await balance_Postion_CL(config.A_Boin_NAME, price_dir, Position)
 
 
 async def main():

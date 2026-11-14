@@ -9,6 +9,7 @@ import uuid
 import websockets
 
 from 价差自动交易系统 import config
+from 价差自动交易系统 import constants
 
 # 下单状态 true用主方法count数量交易 false用
 status=config.status
@@ -16,37 +17,22 @@ Boin_count=config.Boin_count
 
 
 # 假设你通过 REST API 获取并解析了数据
-mapping_dict = config.mapping_dict
+mapping_dict = constants.mapping_dict
 name, api_key, secret_key, passphrase= config.save_to_env()
 url_ws_private=config.url_ws_private
 
-Trading_Pair = {'BTC': 'ETH', 'BZ': 'CL', 'CL': 'BZ', 'ETH': 'BTC'}
-Other_Pair = {
-    "long": 'short',
-    "short": 'long',
-    "buy": "sell",
-    "sell": 'buy'
-}
-sz_mix = {
-    'BTC': 0.0001,
-    'ETH': 0.001,
-    'BZ': 0.01,
-    'CL': 0.1
-
-}
+Trading_Pair = constants.Trading_Pair
+Other_Pair=constants.Other_Pair
+sz_mix =constants.sz_mix
 price_dir_change = {
-    "BTC": "btc_price",
-    "ETH": "eth_price",
-    "BZ": "BZ_price",
-    "CL": "CL_price"
+    config.B_Boin_NAME: f"{config.B_Boin_NAME}_price",
+    config.A_Boin_NAME: f"{config.A_Boin_NAME}_price"
 }
 price_rate_change = {
-    "BTC": "btc_eth_rate",
-    "ETH": "eth_btc_rate",
-    "BZ": "BZ_CL_rate",
-    "CL": "CL_BZ_rate"
+    config.B_Boin_NAME: f"{config.B_Boin_NAME}_{config.A_Boin_NAME}_rate",
+    config.A_Boin_NAME: f"{config.A_Boin_NAME}_{config.B_Boin_NAME}_rate"
 }
-dir_order = {}
+# dir_order = {}
 
 price_rate=10
 ws = None
@@ -63,7 +49,7 @@ async def balance_Postion_CL(inst_id_string, price_dir, position):
     global ws
     await asyncio.sleep(5)
 
-    # 比如传入 "CL"，这里会映射成需要调平的主体目标 "BZ"
+    # 比如传入 config.A_Boin_NAME，这里会映射成需要调平的主体目标 "BZ"
     target_coin = Trading_Pair.get(inst_id_string)
     reverse_coin = inst_id_string
 
@@ -213,11 +199,15 @@ async def order_main(price_rate, price_dir, USDT_count, Postion):
             print(f"[WS] 检测到 WebSocket 连接已关闭 (代码: {e.code}, 原因: {e.reason})")
         except Exception as e:
             print(f"[WS] 发生未预期的网络或程序异常: {e}")
+        except:
+            print("因为其他问题断开")
+        finally:
+            print("[WS] 等待 5 秒后发起重连...\n")
+            await asyncio.sleep(5)
 
         # 无论是因为鉴权失败、被服务器踢出，还是网络报错
         # 统一休息 5 秒后，重新进入下一次 While 循环发起连接
-        print("[WS] 等待 5 秒后发起重连...\n")
-        await asyncio.sleep(5)
+
 
 
 
@@ -226,7 +216,7 @@ async def order_main(price_rate, price_dir, USDT_count, Postion):
 async def strategy_CL_BZ(ws, price_rate, price_dir, USDT_count, Postion):
     print("strategy_CL_BZ")
     from 交易策略 import LocalNeutralGrid
-    grid_front = LocalNeutralGrid(lower_price=0.8, upper_price=1.25, grid_num=40, qty_per_grid=0.5)  # 等比
+    grid_front = LocalNeutralGrid(lower_price=config.Low_Rate_price, upper_price=config.High_Rate_price, grid_num=config.Grid_Num, qty_per_grid=0.5)  # 等比
     grid_reverse = LocalNeutralGrid(lower_price=1, upper_price=2, grid_num=100, qty_per_grid=0.5)
     while True:
         await asyncio.sleep(1)
@@ -236,7 +226,7 @@ async def strategy_CL_BZ(ws, price_rate, price_dir, USDT_count, Postion):
 
         # if price_rate.get("CL_BZ_rate") >= 1:
         #     grid = grid_front
-        #     name = "CL"
+        #     name = config.A_Boin_NAME
         # elif price_rate.get("CL_BZ_rate") < 1:
         #     grid = grid_reverse
         #     name = "BZ"
@@ -244,17 +234,17 @@ async def strategy_CL_BZ(ws, price_rate, price_dir, USDT_count, Postion):
         #     continue
 
         grid = grid_front
-        name = "CL"
+        name = config.A_Boin_NAME
 
-        frist_for = True
+        frist_for = config.Set_Frist_Rate
         while True:
             await asyncio.sleep(1)
 
             price = price_rate.get(price_rate_change.get(name))
 
-            # if frist_for:
-            #     frist_for = False
-            #     price = 0.95
+            if frist_for:
+                frist_for = False
+                price = config.Frist_Rate
             print(f"\n>>> 最新市价: {price}")
 
             await grid.update_price(price, ws, name, USDT_count, price_dir)
@@ -275,7 +265,7 @@ async def place_contract_order(ws, inst_id_string, USDT, side, price_dir_real_fr
     try:
         request_id = uuid.uuid4().hex
 
-        if inst_id_string not in ['BTC', 'BZ', 'CL', 'ETH']:
+        if inst_id_string not in ['BTC', 'BZ', config.A_Boin_NAME, 'ETH']:
             return
 
         if price_dir_real_front is None or price_dir_real_reverse is None:
@@ -327,9 +317,9 @@ async def place_contract_order(ws, inst_id_string, USDT, side, price_dir_real_fr
                 "op": "batch-orders",
                 "args": [
                     {"side": side, "instIdCode": target_instId1, "tdMode": "cross", "ordType": "market",
-                     "sz": str(Boin_count), 'posSide': 'net', "clOrdId": clordid1},
+                     "sz": str(int(Boin_count/constants.sz_mix[inst_id_string])), 'posSide': 'net', "clOrdId": clordid1},
                     {"side": Other_Pair[side], "instIdCode": target_instId2, "tdMode": "cross", "ordType": "market",
-                     "sz": str(Boin_count), 'posSide': 'net', "clOrdId": clordid2}
+                     "sz": str(int(Boin_count/constants.sz_mix[Trading_Pair[inst_id_string]])), 'posSide': 'net', "clOrdId": clordid2}
                 ]
             }
 

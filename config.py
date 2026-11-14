@@ -1,22 +1,23 @@
 import os
 from dotenv import load_dotenv
+from sympy import false
 
 OKX_rate= 10                                                        # 杠杆倍数
 url_set_leverage = 'https://www.okx.com/api/v5/account/set-leverage'# 设置杠杆的网址
 url_ws_private = "wss://ws.okx.com/ws/v5/private"                  # ws连接账户网址
 url_ws_public = 'wss://ws.okx.com/ws/v5/public'                      # ws公共数据网址
-status=False                                                        # 下单状态 true用主方法count数量交易 false用Boin_count数量交易（关闭调平机器人）
+status=False                                                        # 下单状态 true用主方法USDT_count数量交易 false用Boin_count数量交易（关闭调平机器人）
 Boin_count=0.1                                                      # 交易数量status为false时生效
-mapping_dict = {                                                    # OKX交易序号
-    "BTC": 10459,
-    'ETH': 10461,
-    'BZ': 254585,
-    'CL': 251851
-}
-A_Boin_NAME="BZ"                                                         # 一币种
-A_Boin_sz=0.01                                                           # 一币种张数
-B_Boin_NAME="CL"                                                         # 二币种
-B_Boin_sz=0.1                                                            # 二币种张数
+USDT_count = 3                                                      # 单次交易最大数量
+A_Boin_NAME="CL"                                                         # 一币种
+B_Boin_NAME="BZ"                                                         # 二币种
+A_Boin_SWAP="-USDT-SWAP"                                                 # 一币种 合约或币交易（合约以-SWAP结尾 币没有SWAP）
+B_Boin_SWAP="-USDT-SWAP"                                                 # 二币种 合约或币交易（合约以-SWAP结尾 币没有SWAP）
+Low_Rate_price=0.85                                                  # 网格比值区间最低值
+High_Rate_price=1.05                                                # 网格比值区间最高值
+Grid_Num=40                                                         # 网格格数
+Set_Frist_Rate=False                                                # 是否设置初始价格
+Frist_Rate=0.95                                                     # 初始价格（Set_Frist_Rate=True时生效）
 
 def save_to_env(filename=".env"):
     try:

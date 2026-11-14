@@ -9,14 +9,15 @@ from 价差自动交易系统 import config
 name, api_key, secret_key, passphrase= config.save_to_env()
 OKX_rate=config.OKX_rate
 url_set_leverage=config.url_set_leverage
-
+# 修改币种的名称
+Coin_name="CL"
 
 def main():
     # 1. 每次发请求前实时生成时间戳，防止过期
     timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
     body = {
-        "instId": "BZ-USDT-SWAP",
+        "instId": f"{Coin_name}-USDT-SWAP",
         "lever": str(OKX_rate),
         "mgnMode": "cross"
     }
